@@ -42,6 +42,11 @@ def test_leakage_step(features: pl.DataFrame, transactions: pl.DataFrame) -> Non
     }
 
 
+def test_label_delay_step(transactions: pl.DataFrame) -> None:
+    out = pipeline.label_delay(delays=(7, 60))
+    assert set(out) == {"7_days", "60_days"}
+
+
 def test_describe(features: pl.DataFrame) -> None:
     d = pipeline.describe(features)
     assert d["rows"] == sum(p["rows"] for p in d["split"].values())

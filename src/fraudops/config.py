@@ -26,18 +26,9 @@ TARGET = "isFraud"
 TIME = "TransactionDT"  # seconds since an unpublished reference instant
 AMOUNT = "TransactionAmt"
 DAY_SECONDS = 86_400
-
-CATEGORICAL = [
-    "ProductCD",
-    "card4",
-    "card6",
-    "P_emaildomain",
-    "R_emaildomain",
-    *[f"M{i}" for i in range(1, 10)],
-    "DeviceType",
-    "DeviceInfo",
-    *[f"id_{i}" for i in range(12, 39)],
-]
+# A fraud label (chargeback) is assumed known this many days after the transaction; before that,
+# the transaction's outcome is unknown to the model. Sensitivity: `fraudops label-delay`.
+LABEL_DELAY_DAYS = 30
 
 
 @dataclass(frozen=True)

@@ -24,6 +24,10 @@ def test_champion_promotion(features: pl.DataFrame) -> None:
     with mlflow.start_run(run_name="c"):
         v3 = registry.log_model(model, 0.35)
     assert registry.promote_if_better(client, v3, 0.35)
+    status = {
+        v: client.get_model_version(registry.MODEL_NAME, v).tags["status"] for v in (v1, v2, v3)
+    }
+    assert status == {v1: "retired", v2: "challenger", v3: "champion"}
     loaded = registry.load_champion()
     assert loaded.version == v3
     assert loaded.features == model.features

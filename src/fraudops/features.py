@@ -10,6 +10,10 @@ Three kinds of features:
   ``(TransactionDT, TransactionID)``, so a row never sees itself or anything after it. The
   online store in :mod:`fraudops.online` computes the same numbers one transaction at a time and
   a test replays the stream through it to prove they match.
+* **Known-fraud features** per entity: how many of its earlier transactions have a *matured*
+  label (older than ``LABEL_DELAY_DAYS``) and how many of those were fraud. A chargeback takes
+  weeks to arrive, so a label is only usable once it is that old; younger transactions count as
+  unknown, never as legitimate.
 * **Category codes** fitted on the training period only (:class:`CategoryEncoder`).
 
 ``history_features(mode="global")`` exists only for the leakage experiment: it computes the same
@@ -25,7 +29,7 @@ from typing import Literal
 import numpy as np
 import polars as pl
 
-from fraudops.config import AMOUNT, DAY_SECONDS, ID, TARGET, TIME
+from fraudops.config import AMOUNT, DAY_SECONDS, ID, LABEL_DELAY_DAYS, TARGET, TIME
 
 HISTORY_KEYS = ("card1", "uid")
 HISTORY_STATS = (
@@ -36,11 +40,19 @@ HISTORY_STATS = (
     "secs_since_prev",
     "n_24h",
 )
-NOT_FEATURES = {ID, TARGET, TIME, "day", "uid"}
+LABEL_STATS = ("labels_matured", "fraud_known", "fraud_rate_known")
+# account_start is the account's start *day*: a calendar date in disguise (PSI 1.8 train vs test).
+# It is kept to build the uid but is not a model input; the known-fraud features carry what it
+# was standing in for (see docs/DESIGN.md section 3).
+NOT_FEATURES = {ID, TARGET, TIME, "day", "uid", "account_start"}
 
 
 def history_columns(keys: Iterable[str] = HISTORY_KEYS) -> list[str]:
     return [f"{k}_{s}" for k in keys for s in HISTORY_STATS]
+
+
+def label_columns(keys: Iterable[str] = HISTORY_KEYS) -> list[str]:
+    return [f"{k}_{s}" for k in keys for s in LABEL_STATS]
 
 
 def row_features(df: pl.DataFrame) -> pl.DataFrame:
@@ -142,8 +154,52 @@ def history_features(
     return df.drop(["_pos", "_n", "_s", "_ss", "_prev"])
 
 
-def build_features(df: pl.DataFrame, mode: Literal["prior", "global"] = "prior") -> pl.DataFrame:
-    return history_features(row_features(df), mode=mode)
+def label_features(
+    df: pl.DataFrame,
+    keys: Sequence[str] = HISTORY_KEYS,
+    delay_days: int = LABEL_DELAY_DAYS,
+) -> pl.DataFrame:
+    """Per entity: earlier transactions whose label has matured, and how many were fraud.
+
+    A transaction at time ``s`` has a known label at time ``t`` when ``s <= t - delay``.
+    """
+    df = df.sort([TIME, ID])
+    t = df[TIME].cast(pl.Int64).to_numpy()
+    y = df[TARGET].cast(pl.Int64).to_numpy()
+    pos = np.arange(len(df))
+    for k in keys:
+        codes = _key_codes(df[k])
+        order = np.lexsort((pos, codes))
+        k_sorted = codes[order].astype(np.int64)
+        combined = k_sorted * (1 << 40) + t[order]
+        group_start = np.searchsorted(combined, k_sorted * (1 << 40) - (1 << 39), side="left")
+        cutoff = np.searchsorted(
+            combined, k_sorted * (1 << 40) + t[order] - delay_days * DAY_SECONDS, side="right"
+        )
+        cum_fraud = np.concatenate([[0], np.cumsum(y[order])])
+        matured = np.empty(len(df), dtype=np.float64)
+        fraud = np.empty(len(df), dtype=np.float64)
+        matured[order] = cutoff - group_start
+        fraud[order] = cum_fraud[cutoff] - cum_fraud[group_start]
+        valid = codes != -1
+        df = df.with_columns(
+            pl.Series(f"{k}_labels_matured", np.where(valid, matured, np.nan)).fill_nan(None),
+            pl.Series(f"{k}_fraud_known", np.where(valid, fraud, np.nan)).fill_nan(None),
+        ).with_columns(
+            pl.when(pl.col(f"{k}_labels_matured") > 0)
+            .then(pl.col(f"{k}_fraud_known") / pl.col(f"{k}_labels_matured"))
+            .alias(f"{k}_fraud_rate_known"),
+        )
+        df = df.with_columns(pl.col(label_columns([k])).cast(pl.Float32))
+    return df
+
+
+def build_features(
+    df: pl.DataFrame,
+    mode: Literal["prior", "global"] = "prior",
+    delay_days: int = LABEL_DELAY_DAYS,
+) -> pl.DataFrame:
+    return label_features(history_features(row_features(df), mode=mode), delay_days=delay_days)
 
 
 @dataclass

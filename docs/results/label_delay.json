@@ -1,0 +1,22 @@
+{
+  "7_days": {
+    "val_pr_auc": 0.7588,
+    "test_pr_auc": 0.7066,
+    "rounds": 332
+  },
+  "30_days": {
+    "val_pr_auc": 0.7167,
+    "test_pr_auc": 0.6369,
+    "rounds": 1301
+  },
+  "60_days": {
+    "val_pr_auc": 0.6825,
+    "test_pr_auc": 0.6069,
+    "rounds": 1453
+  },
+  "90_days": {
+    "val_pr_auc": 0.6452,
+    "test_pr_auc": 0.5727,
+    "rounds": 1067
+  }
+}

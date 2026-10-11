@@ -1,0 +1,145 @@
+{
+  "watched_features": [
+    "uid_fraud_rate_known",
+    "C13",
+    "P_emaildomain",
+    "C1",
+    "card6",
+    "TransactionAmt",
+    "C14",
+    "C11",
+    "card1_amt_mean_prior",
+    "uid_labels_matured",
+    "card1_fraud_rate_known",
+    "card2",
+    "amt_log",
+    "card1",
+    "card1_amt_std_prior",
+    "D2",
+    "amt_cents",
+    "C5",
+    "uid_secs_since_prev",
+    "DeviceInfo",
+    "uid_fraud_known",
+    "card5",
+    "addr1",
+    "ProductCD",
+    "D15",
+    "id_31",
+    "D4",
+    "R_emaildomain",
+    "V70",
+    "card1_amt_ratio"
+  ],
+  "weekly": [
+    {
+      "week": 17,
+      "transactions": 20524,
+      "fraud_rate_pct": 3.56,
+      "pr_auc": 0.8138,
+      "score_psi": 0.1063,
+      "features_psi_over_0.2": 4,
+      "worst_features": "card1_fraud_rate_known 1.30, id_31 0.53, uid_labels_matured 0.25"
+    },
+    {
+      "week": 18,
+      "transactions": 19622,
+      "fraud_rate_pct": 3.53,
+      "pr_auc": 0.7318,
+      "score_psi": 0.0698,
+      "features_psi_over_0.2": 3,
+      "worst_features": "card1_fraud_rate_known 1.27, id_31 0.50, uid_labels_matured 0.23"
+    },
+    {
+      "week": 19,
+      "transactions": 18630,
+      "fraud_rate_pct": 3.46,
+      "pr_auc": 0.6991,
+      "score_psi": 0.0886,
+      "features_psi_over_0.2": 4,
+      "worst_features": "card1_fraud_rate_known 1.29, id_31 0.49, uid_labels_matured 0.27"
+    },
+    {
+      "week": 20,
+      "transactions": 18460,
+      "fraud_rate_pct": 3.59,
+      "pr_auc": 0.6557,
+      "score_psi": 0.0874,
+      "features_psi_over_0.2": 3,
+      "worst_features": "card1_fraud_rate_known 1.37, id_31 0.51, uid_labels_matured 0.24"
+    },
+    {
+      "week": 21,
+      "transactions": 20378,
+      "fraud_rate_pct": 3.17,
+      "pr_auc": 0.6797,
+      "score_psi": 0.1073,
+      "features_psi_over_0.2": 4,
+      "worst_features": "card1_fraud_rate_known 1.43, id_31 0.54, uid_labels_matured 0.28"
+    },
+    {
+      "week": 22,
+      "transactions": 20740,
+      "fraud_rate_pct": 2.85,
+      "pr_auc": 0.6215,
+      "score_psi": 0.1035,
+      "features_psi_over_0.2": 4,
+      "worst_features": "card1_fraud_rate_known 1.34, id_31 0.44, uid_labels_matured 0.27"
+    },
+    {
+      "week": 23,
+      "transactions": 20944,
+      "fraud_rate_pct": 3.25,
+      "pr_auc": 0.5626,
+      "score_psi": 0.0588,
+      "features_psi_over_0.2": 2,
+      "worst_features": "card1_fraud_rate_known 1.36, id_31 0.46, uid_labels_matured 0.19"
+    },
+    {
+      "week": 24,
+      "transactions": 20206,
+      "fraud_rate_pct": 3.67,
+      "pr_auc": 0.6705,
+      "score_psi": 0.0594,
+      "features_psi_over_0.2": 3,
+      "worst_features": "card1_fraud_rate_known 1.42, id_31 0.45, uid_labels_matured 0.22"
+    },
+    {
+      "week": 25,
+      "transactions": 17681,
+      "fraud_rate_pct": 4.16,
+      "pr_auc": 0.6713,
+      "score_psi": 0.0872,
+      "features_psi_over_0.2": 3,
+      "worst_features": "card1_fraud_rate_known 1.38, id_31 0.54, uid_labels_matured 0.21"
+    },
+    {
+      "week": 26,
+      "transactions": 2754,
+      "fraud_rate_pct": 4.32,
+      "pr_auc": 0.7327,
+      "score_psi": 0.0901,
+      "features_psi_over_0.2": 3,
+      "worst_features": "card1_fraud_rate_known 1.56, id_31 0.53, uid_labels_matured 0.25"
+    }
+  ],
+  "worst_features_val_test_vs_train": {
+    "card1_fraud_rate_known": 1.3409,
+    "card1_labels_matured": 1.1846,
+    "card1_fraud_known": 0.5859,
+    "id_13": 0.5058,
+    "id_31": 0.3629,
+    "M8": 0.3201,
+    "M9": 0.3201,
+    "M7": 0.3199,
+    "M2": 0.2993,
+    "M3": 0.2993,
+    "M1": 0.2992,
+    "card1_n_prior": 0.2928,
+    "D11": 0.2888,
+    "V11": 0.2549,
+    "V10": 0.2548
+  },
+  "features_psi_over_0.2": 25,
+  "features_total": 453
+}

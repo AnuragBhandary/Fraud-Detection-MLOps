@@ -21,7 +21,7 @@ from fraudops.config import (
     TIME,
     TRANSACTIONS_PARQUET,
 )
-from fraudops.features import build_features, history_columns
+from fraudops.features import build_features, history_columns, label_columns
 from fraudops.metrics import (
     best_threshold,
     bootstrap_ci,
@@ -179,16 +179,21 @@ def train(
             mlflow.log_metrics({f"test_{k}": v for k, v in results["lgbm_base"]["test"].items()})
     print("lgbm_base", results["lgbm_base"])
 
-    # 3. Ablation: same model without the history features.
-    hist = set(history_columns())
-    m_nohist = prepare(split.train, split.val, split.test, drop=tuple(hist))
-    nohist = train_lgbm(m_nohist)
-    results["lgbm_no_history"] = {
-        "val": _round(ranking_metrics(m.y_val, predict(nohist, m_nohist.X_val))),
-        "test": _round(ranking_metrics(m.y_test, predict(nohist, m_nohist.X_test))),
-    }
-    del m_nohist
-    print("lgbm_no_history", results["lgbm_no_history"])
+    # 3. Ablations: the same model without each engineered feature family.
+    for name, drop in (
+        ("lgbm_no_history", history_columns()),
+        ("lgbm_no_known_fraud", label_columns()),
+        ("lgbm_no_engineered", [*history_columns(), *label_columns()]),
+    ):
+        m_abl = prepare(split.train, split.val, split.test, drop=tuple(drop))
+        b_abl = train_lgbm(m_abl)
+        results[name] = {
+            "best_iteration": b_abl.best_iteration,
+            "val": _round(ranking_metrics(m.y_val, predict(b_abl, m_abl.X_val))),
+            "test": _round(ranking_metrics(m.y_test, predict(b_abl, m_abl.X_test))),
+        }
+        del m_abl
+        print(name, results[name])
 
     # 4. Optuna search (validation PR-AUC, early stopping, median pruning).
     t0 = time.perf_counter()
@@ -312,12 +317,32 @@ def leakage(
     return out
 
 
+def label_delay(
+    transactions: Path = TRANSACTIONS_PARQUET, delays: tuple[int, ...] = (7, 30, 60, 90)
+) -> dict[str, Any]:
+    """What is a faster chargeback feed worth? Same model, labels usable after N days."""
+    raw = pl.read_parquet(transactions)
+    out: dict[str, Any] = {}
+    for d in delays:
+        s = time_split(build_features(raw, delay_days=d))
+        m = prepare(s.train, s.val, s.test)
+        b = train_lgbm(m)
+        out[f"{d}_days"] = {
+            "val_pr_auc": round(pr_auc(m.y_val, predict(b, m.X_val)), 4),
+            "test_pr_auc": round(pr_auc(m.y_test, predict(b, m.X_test)), 4),
+            "rounds": b.best_iteration,
+        }
+        print(d, out[f"{d}_days"])
+    save_results("label_delay", out)
+    return out
+
+
 def build_store(features_path: Path = FEATURES_PARQUET, out: Path | None = None) -> dict[str, Any]:
     """Replay every transaction before the test period into the online store and snapshot it."""
     from fraudops.online import OnlineFeatureStore
 
     out = out or ARTIFACTS_DIR / "feature_store.pkl"
-    df = pl.read_parquet(features_path, columns=[ID, TIME, AMOUNT, "card1", "addr1", "D1"])
+    df = pl.read_parquet(features_path, columns=[ID, TIME, AMOUNT, TARGET, "card1", "addr1", "D1"])
     split = time_split(df)
     history = pl.concat([split.train, split.val]).sort([TIME, ID])
     store = OnlineFeatureStore()

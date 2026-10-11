@@ -15,6 +15,7 @@ def main(argv: list[str] | None = None) -> None:
     t = sub.add_parser("train", help="baseline, LightGBM, Optuna, calibration, MLflow registry")
     t.add_argument("--trials", type=int, default=30)
     sub.add_parser("leakage", help="random vs time split, future-peeking vs past-only features")
+    sub.add_parser("label-delay", help="known-fraud features with labels usable after 7-90 days")
     sub.add_parser("build-store", help="snapshot the online feature store at the end of validation")
     sub.add_parser("drift", help="weekly PSI and performance report")
     b = sub.add_parser("bench", help="latency + online/offline parity through the HTTP API")
@@ -36,6 +37,8 @@ def main(argv: list[str] | None = None) -> None:
         pipeline.train(n_trials=args.trials)
     elif args.cmd == "leakage":
         pipeline.leakage()
+    elif args.cmd == "label-delay":
+        pipeline.label_delay()
     elif args.cmd == "build-store":
         pipeline.save_results("store", pipeline.build_store())
     elif args.cmd == "drift":

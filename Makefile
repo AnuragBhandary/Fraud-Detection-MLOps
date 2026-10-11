@@ -1,4 +1,4 @@
-.PHONY: install data prepare train leakage store drift bench all serve mlflow-ui test lint check
+.PHONY: install data prepare train leakage label-delay store drift bench all serve mlflow-ui test lint check
 
 # Keep the laptop usable: models and BLAS stay on 4 threads, heavy steps run at low priority.
 export FRAUDOPS_THREADS ?= 4
@@ -23,6 +23,9 @@ train:              ## baseline, LightGBM, ablation, Optuna, calibration, regist
 leakage:            ## random split / future-peeking aggregates vs the honest setup
 	nice -n 10 uv run fraudops leakage
 
+label-delay:        ## value of faster chargebacks: labels usable after 7/30/60/90 days
+	nice -n 10 uv run fraudops label-delay
+
 store:              ## online feature store snapshot at the end of validation
 	uv run fraudops build-store
 
@@ -33,7 +36,7 @@ bench:              ## HTTP latency + online/offline parity on 5,000 test transa
 	uv run fraudops bench -n 5000
 	uv run fraudops bench -n 5000 --no-explain
 
-all: prepare train leakage store drift bench
+all: prepare train leakage label-delay store drift bench
 
 serve:
 	uv run fraudops serve --port 8000

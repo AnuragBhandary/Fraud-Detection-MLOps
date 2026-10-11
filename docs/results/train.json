@@ -1,0 +1,317 @@
+{
+  "data": {
+    "rows": 590540,
+    "fraud_rate_pct": 3.499,
+    "first_day": 1,
+    "last_day": 182,
+    "fraud_dollars_pct": 3.87,
+    "columns": 459,
+    "split": {
+      "train": {
+        "rows": 410601,
+        "fraud_rate_pct": 3.512,
+        "first_day": 1,
+        "last_day": 119,
+        "fraud_dollars_pct": 3.79
+      },
+      "val": {
+        "rows": 90613,
+        "fraud_rate_pct": 3.454,
+        "first_day": 120,
+        "last_day": 151,
+        "fraud_dollars_pct": 4.18
+      },
+      "test": {
+        "rows": 89326,
+        "fraud_rate_pct": 3.486,
+        "first_day": 152,
+        "last_day": 182,
+        "fraud_dollars_pct": 3.9
+      }
+    }
+  },
+  "features": 453,
+  "logistic": {
+    "val": {
+      "pr_auc": 0.5728,
+      "roc_auc": 0.9315,
+      "recall_at_1pct_fpr": 0.4735
+    },
+    "test": {
+      "pr_auc": 0.5278,
+      "roc_auc": 0.9138,
+      "recall_at_1pct_fpr": 0.4496
+    }
+  },
+  "lgbm_base": {
+    "best_iteration": 1301,
+    "val": {
+      "pr_auc": 0.7167,
+      "roc_auc": 0.9504,
+      "recall_at_1pct_fpr": 0.6428
+    },
+    "test": {
+      "pr_auc": 0.6369,
+      "roc_auc": 0.9311,
+      "recall_at_1pct_fpr": 0.5597
+    }
+  },
+  "lgbm_no_history": {
+    "best_iteration": 872,
+    "val": {
+      "pr_auc": 0.7133,
+      "roc_auc": 0.9516,
+      "recall_at_1pct_fpr": 0.6396
+    },
+    "test": {
+      "pr_auc": 0.6349,
+      "roc_auc": 0.9322,
+      "recall_at_1pct_fpr": 0.552
+    }
+  },
+  "lgbm_no_known_fraud": {
+    "best_iteration": 5164,
+    "val": {
+      "pr_auc": 0.6517,
+      "roc_auc": 0.9299,
+      "recall_at_1pct_fpr": 0.562
+    },
+    "test": {
+      "pr_auc": 0.5507,
+      "roc_auc": 0.9044,
+      "recall_at_1pct_fpr": 0.4595
+    }
+  },
+  "lgbm_no_engineered": {
+    "best_iteration": 1134,
+    "val": {
+      "pr_auc": 0.6211,
+      "roc_auc": 0.9263,
+      "recall_at_1pct_fpr": 0.5297
+    },
+    "test": {
+      "pr_auc": 0.5336,
+      "roc_auc": 0.8984,
+      "recall_at_1pct_fpr": 0.4435
+    }
+  },
+  "optuna": {
+    "trials": 30,
+    "completed": 10,
+    "pruned": 20,
+    "best_val_pr_auc": 0.7172,
+    "default_val_pr_auc": 0.7167,
+    "best_params": {
+      "num_leaves": 89,
+      "min_child_samples": 13,
+      "feature_fraction": 0.41475118408149697,
+      "bagging_fraction": 0.74994125041278,
+      "lambda_l2": 1.0989933195254447,
+      "min_gain_to_split": 0.8037390361043755
+    }
+  },
+  "lgbm_tuned": {
+    "best_iteration": 605,
+    "val": {
+      "pr_auc": 0.7172,
+      "roc_auc": 0.9525,
+      "recall_at_1pct_fpr": 0.6457
+    },
+    "test": {
+      "pr_auc": 0.644,
+      "roc_auc": 0.936,
+      "recall_at_1pct_fpr": 0.5527
+    }
+  },
+  "tuned_minus_logistic_test_pr_auc_ci95": [
+    0.1049,
+    0.1282
+  ],
+  "decisions": {
+    "flag_nothing": {
+      "cost": 539635.934,
+      "cost_no_model": 539635.934,
+      "saved_pct": 0.0,
+      "flag_rate_pct": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "fraud_dollars_caught_pct": 0.0
+    },
+    "raw_score_0.5": {
+      "cost": 356550.995,
+      "cost_no_model": 539635.934,
+      "saved_pct": 33.9275,
+      "flag_rate_pct": 1.9166,
+      "precision": 0.8423,
+      "recall": 0.4631,
+      "fraud_dollars_caught_pct": 35.8988
+    },
+    "best_val_threshold": {
+      "threshold": 0.02867,
+      "cost": 209753.432,
+      "cost_no_model": 539635.934,
+      "saved_pct": 61.13056622356064,
+      "flag_rate_pct": 11.788281127555248,
+      "precision": 0.2378917378917379,
+      "recall": 0.8044315992292871,
+      "fraud_dollars_caught_pct": 80.66988898057774
+    },
+    "expected_cost_rule": {
+      "cost": 169886.076,
+      "cost_no_model": 539635.934,
+      "saved_pct": 68.5184,
+      "flag_rate_pct": 8.9907,
+      "precision": 0.2749,
+      "recall": 0.7091,
+      "fraud_dollars_caught_pct": 85.0309
+    },
+    "calibration_test": [
+      {
+        "decile": 2,
+        "mean_predicted": 0.0,
+        "observed": 0.0003
+      },
+      {
+        "decile": 3,
+        "mean_predicted": 0.0005,
+        "observed": 0.0008
+      },
+      {
+        "decile": 4,
+        "mean_predicted": 0.0015,
+        "observed": 0.0028
+      },
+      {
+        "decile": 5,
+        "mean_predicted": 0.0025,
+        "observed": 0.0029
+      },
+      {
+        "decile": 6,
+        "mean_predicted": 0.0046,
+        "observed": 0.0049
+      },
+      {
+        "decile": 7,
+        "mean_predicted": 0.0083,
+        "observed": 0.0107
+      },
+      {
+        "decile": 8,
+        "mean_predicted": 0.0128,
+        "observed": 0.0179
+      },
+      {
+        "decile": 9,
+        "mean_predicted": 0.0301,
+        "observed": 0.0288
+      },
+      {
+        "decile": 10,
+        "mean_predicted": 0.2621,
+        "observed": 0.2448
+      }
+    ],
+    "val_expected_cost_rule": {
+      "cost": 148659.61,
+      "cost_no_model": 574309.054,
+      "saved_pct": 74.1151,
+      "flag_rate_pct": 8.1721,
+      "precision": 0.3278,
+      "recall": 0.7754,
+      "fraud_dollars_caught_pct": 88.1672
+    }
+  },
+  "shap_top20": [
+    {
+      "feature": "uid_fraud_rate_known",
+      "mean_abs_log_odds": 0.6534
+    },
+    {
+      "feature": "C13",
+      "mean_abs_log_odds": 0.2174
+    },
+    {
+      "feature": "P_emaildomain",
+      "mean_abs_log_odds": 0.1535
+    },
+    {
+      "feature": "uid_labels_matured",
+      "mean_abs_log_odds": 0.1351
+    },
+    {
+      "feature": "C1",
+      "mean_abs_log_odds": 0.1164
+    },
+    {
+      "feature": "card1_fraud_rate_known",
+      "mean_abs_log_odds": 0.1079
+    },
+    {
+      "feature": "C14",
+      "mean_abs_log_odds": 0.1049
+    },
+    {
+      "feature": "card6",
+      "mean_abs_log_odds": 0.1009
+    },
+    {
+      "feature": "TransactionAmt",
+      "mean_abs_log_odds": 0.0982
+    },
+    {
+      "feature": "card1_amt_mean_prior",
+      "mean_abs_log_odds": 0.0957
+    },
+    {
+      "feature": "card1_amt_std_prior",
+      "mean_abs_log_odds": 0.0927
+    },
+    {
+      "feature": "D1",
+      "mean_abs_log_odds": 0.0919
+    },
+    {
+      "feature": "C5",
+      "mean_abs_log_odds": 0.087
+    },
+    {
+      "feature": "D2",
+      "mean_abs_log_odds": 0.0868
+    },
+    {
+      "feature": "card2",
+      "mean_abs_log_odds": 0.0864
+    },
+    {
+      "feature": "uid_secs_since_prev",
+      "mean_abs_log_odds": 0.0852
+    },
+    {
+      "feature": "amt_cents",
+      "mean_abs_log_odds": 0.0849
+    },
+    {
+      "feature": "amt_log",
+      "mean_abs_log_odds": 0.0849
+    },
+    {
+      "feature": "C11",
+      "mean_abs_log_odds": 0.0846
+    },
+    {
+      "feature": "uid_fraud_known",
+      "mean_abs_log_odds": 0.0838
+    }
+  ],
+  "timings_s": {
+    "logistic_s": 23.7,
+    "lgbm_base_s": 37.5,
+    "optuna_s": 497.6,
+    "lgbm_tuned_s": 36.0
+  },
+  "registry": {
+    "version": "2",
+    "promoted_to_champion": true
+  }
+}

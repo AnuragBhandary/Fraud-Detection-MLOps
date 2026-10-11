@@ -3,7 +3,8 @@
 Starts uvicorn in a subprocess with the champion model and the store snapshot (state as of the
 end of validation), then sends test transactions one at a time in stream order. Reports client
 latency percentiles, the server's own processing time, and parity: every API probability is
-compared with the offline batch prediction for the same row.
+compared with the offline batch prediction for the same row. Fraud rows are reported through
+``/v1/chargeback`` after scoring, which is how the known-fraud features learn about them.
 """
 
 from __future__ import annotations
@@ -76,7 +77,7 @@ def run(n: int = 5000, warmup: int = 200, explain: bool = True) -> dict[str, Any
             lat, server_ms, probs, decisions = [], [], [], []
             for row in test_raw.iter_rows(named=True):
                 body = _clean(row)
-                body.pop("isFraud", None)
+                is_fraud = body.pop("isFraud", 0)
                 t0 = time.perf_counter()
                 r = client.post("/v1/score", params={"explain": explain}, json=body)
                 lat.append((time.perf_counter() - t0) * 1000)
@@ -85,6 +86,8 @@ def run(n: int = 5000, warmup: int = 200, explain: bool = True) -> dict[str, Any
                 out = r.json()
                 probs.append(out["fraud_probability"])
                 decisions.append(out["decision"])
+                if is_fraud:  # the issuer later learns the truth; it counts once matured
+                    client.post("/v1/chargeback", json={"TransactionID": row["TransactionID"]})
     finally:
         server.terminate()
         server.wait(10)

@@ -87,6 +87,11 @@ def promote_if_better(client: MlflowClient, version: str, val_pr_auc: float) -> 
     if current is not None and val_pr_auc <= current:
         client.set_model_version_tag(MODEL_NAME, version, "status", "challenger")
         return False
+    try:
+        previous = client.get_model_version_by_alias(MODEL_NAME, CHAMPION_ALIAS).version
+        client.set_model_version_tag(MODEL_NAME, previous, "status", "retired")
+    except mlflow.exceptions.MlflowException:
+        pass  # first model: nothing to retire
     client.set_registered_model_alias(MODEL_NAME, CHAMPION_ALIAS, version)
     client.set_model_version_tag(MODEL_NAME, version, "status", "champion")
     return True
