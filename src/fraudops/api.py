@@ -4,6 +4,9 @@
 features from the online store, scores it with the champion model and returns the calibrated
 probability, the decision (review or approve), the expected loss, and the top SHAP reasons.
 The transaction is then added to the store, so the next one from the same card sees it.
+
+``POST /v1/chargeback`` reports a transaction as fraud. It feeds the known-fraud features once the
+transaction is older than the label delay (until then its outcome is unknown, as in production).
 """
 
 from __future__ import annotations
@@ -29,6 +32,10 @@ class Transaction(BaseModel):
     TransactionID: int
     TransactionDT: int = Field(ge=0)
     TransactionAmt: float = Field(gt=0)
+
+
+class Chargeback(BaseModel):
+    TransactionID: int
 
 
 class Reason(BaseModel):
@@ -114,5 +121,10 @@ def create_app(model: FraudModel | None = None, store: OnlineFeatureStore | None
     @app.post("/v1/score", response_model=Score)
     def score(txn: Transaction, explain: bool = True) -> Score:
         return score_one(model, store, txn.model_dump(), explain=explain)
+
+    @app.post("/v1/chargeback", status_code=202)
+    def chargeback(cb: Chargeback) -> dict[str, int]:
+        store.report_chargeback(cb.TransactionID)
+        return {"accepted": cb.TransactionID}
 
     return app

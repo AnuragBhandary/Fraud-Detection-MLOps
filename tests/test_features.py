@@ -9,14 +9,14 @@ from fraudops.features import CategoryEncoder, build_features, history_columns
 
 def _tiny() -> pl.DataFrame:
     rows = [  # card 1 three times (two within a day), card 2 once, then card 1 again later
-        (1, 100, 10.0, 1, 200.0, 5.0),
-        (2, 200, 30.0, 1, 200.0, 5.0),
-        (3, 250, 7.0, 2, None, 3.0),
-        (4, 200 + DAY_SECONDS, 50.0, 1, 200.0, 6.0),
-        (5, 300 + DAY_SECONDS, 20.0, 1, 200.0, 6.0),
+        (1, 100, 10.0, 1, 200.0, 5.0, 1),
+        (2, 200, 30.0, 1, 200.0, 5.0, 0),
+        (3, 250, 7.0, 2, None, 3.0, 0),
+        (4, 200 + DAY_SECONDS, 50.0, 1, 200.0, 6.0, 1),
+        (5, 300 + DAY_SECONDS, 20.0, 1, 200.0, 6.0, 0),
     ]
     return pl.DataFrame(
-        rows, schema=[ID, TIME, AMOUNT, "card1", "addr1", "D1"], orient="row"
+        rows, schema=[ID, TIME, AMOUNT, "card1", "addr1", "D1", "isFraud"], orient="row"
     ).with_columns(pl.col(TIME).cast(pl.Int64))
 
 
@@ -31,6 +31,18 @@ def test_prior_features_hand_computed() -> None:
     assert f["card1_n_24h"].to_list() == [0, 1, 0, 0, 1]
     # std needs two earlier rows: row 4 sees 10 and 30 -> population std 10.
     assert f["card1_amt_std_prior"][3] == 10.0
+
+
+def test_known_fraud_waits_for_the_label_delay() -> None:
+    f = build_features(_tiny(), delay_days=1).sort(ID)
+    # Rows 4 and 5 (a day later): rows 1 and 2 are a day old, so known (one fraud). Row 5 does
+    # not know row 4 (fraud, 100 s old): unknown, and not counted as legitimate either.
+    assert f["card1_labels_matured"].to_list() == [0, 0, 0, 2, 2]
+    assert f["card1_fraud_known"].to_list() == [0, 0, 0, 1, 1]
+    assert f["card1_fraud_rate_known"].to_list() == [None, None, None, 0.5, 0.5]
+    assert f["uid_labels_matured"][2] is None  # no uid, no features
+    with_30 = build_features(_tiny()).sort(ID)
+    assert with_30["card1_labels_matured"].to_list() == [0, 0, 0, 0, 0]
 
 
 def test_uid_needs_address_and_account_start() -> None:

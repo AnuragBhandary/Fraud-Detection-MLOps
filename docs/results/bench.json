@@ -1,0 +1,17 @@
+{
+  "requests": 5000,
+  "explain": true,
+  "client_ms": {
+    "p50": 7.94,
+    "p95": 8.15,
+    "p99": 8.26
+  },
+  "server_ms": {
+    "p50": 7.45,
+    "p95": 7.64,
+    "p99": 7.73
+  },
+  "parity_max_abs_diff": 0.0,
+  "parity_rows_differing": 0,
+  "review_rate_pct": 7.83
+}

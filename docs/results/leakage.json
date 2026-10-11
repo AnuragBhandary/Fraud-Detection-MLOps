@@ -1,0 +1,18 @@
+{
+  "past_only_features/time_split": {
+    "test_pr_auc": 0.6369,
+    "rounds": 1301
+  },
+  "past_only_features/random_split": {
+    "test_pr_auc": 0.8732,
+    "rounds": 5999
+  },
+  "future_peeking_features/time_split": {
+    "test_pr_auc": 0.6414,
+    "rounds": 953
+  },
+  "future_peeking_features/random_split": {
+    "test_pr_auc": 0.8871,
+    "rounds": 5724
+  }
+}

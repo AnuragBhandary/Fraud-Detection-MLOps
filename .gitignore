@@ -12,3 +12,4 @@ data/
 artifacts/
 mlruns/
 mlflow.db
+logs/

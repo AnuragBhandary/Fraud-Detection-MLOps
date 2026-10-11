@@ -97,3 +97,14 @@ def test_api_matches_offline_batch(features: pl.DataFrame) -> None:
         body = {k: v for k, v in row.items() if v is not None}
         online.append(c.post("/v1/score", json=body).json()["fraud_probability"])
     assert np.allclose(online, np.round(offline, 6), atol=1e-9)
+
+
+def test_chargeback_feeds_known_fraud_after_the_delay(client: TestClient) -> None:
+    store: OnlineFeatureStore = client.app.state.store  # type: ignore[attr-defined]
+    day = 86_400
+    client.post("/v1/score", json=_txn(TransactionID=50, card1=31337, TransactionDT=10 * day))
+    assert client.post("/v1/chargeback", json={"TransactionID": 50}).status_code == 202
+    soon = store.process(_txn(TransactionID=51, card1=31337, TransactionDT=20 * day), update=False)
+    assert soon["card1_labels_matured"] == 0  # 10 days old: outcome still unknown
+    later = store.process(_txn(TransactionID=52, card1=31337, TransactionDT=41 * day), update=False)
+    assert later["card1_fraud_known"] == 1 and later["card1_fraud_rate_known"] == 1.0

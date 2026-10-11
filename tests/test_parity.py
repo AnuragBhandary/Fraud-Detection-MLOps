@@ -7,10 +7,19 @@ from pathlib import Path
 import polars as pl
 
 from fraudops.config import ID, TIME
-from fraudops.features import history_columns
+from fraudops.features import history_columns, label_columns
 from fraudops.online import OnlineFeatureStore
 
-COLUMNS = [*history_columns(), "hour", "dow", "amt_log", "amt_cents", "account_start", "uid"]
+COLUMNS = [
+    *history_columns(),
+    *label_columns(),
+    "hour",
+    "dow",
+    "amt_log",
+    "amt_cents",
+    "account_start",
+    "uid",
+]
 
 
 def test_replay_matches_offline(features: pl.DataFrame) -> None:
@@ -18,6 +27,8 @@ def test_replay_matches_offline(features: pl.DataFrame) -> None:
     mismatches = []
     for row in features.sort([TIME, ID]).iter_rows(named=True):
         online = store.process(row)
+        if row["isFraud"]:  # the chargeback arrives later; it only counts once matured
+            store.report_chargeback(row[ID])
         for c in COLUMNS:
             if row[c] != online[c]:
                 mismatches.append((row[ID], c, row[c], online[c]))

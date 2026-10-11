@@ -16,7 +16,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline, make_pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import OneHotEncoder, QuantileTransformer
 
 from fraudops.config import AMOUNT, COSTS, N_THREADS, SEED, TARGET, Costs
 from fraudops.features import CategoryEncoder, feature_names
@@ -84,7 +84,7 @@ def prepare(
 def train_lgbm(
     m: Matrices,
     params: dict[str, Any] | None = None,
-    max_rounds: int = 3000,
+    max_rounds: int = 6000,
     patience: int = 100,
     callbacks: list[Callable[..., None]] | None = None,
 ) -> lgb.Booster:
@@ -108,7 +108,12 @@ def predict(booster: lgb.Booster, X: np.ndarray) -> np.ndarray:
 
 
 def train_logistic(m: Matrices) -> Pipeline:
-    """Linear baseline on the non-Vesta columns: imputed + scaled numerics, one-hot categoricals."""
+    """Linear baseline on the non-Vesta columns: rank-scaled numerics, one-hot categoricals.
+
+    Rank scaling (QuantileTransformer) rather than StandardScaler: counts and time deltas in later
+    months fall far outside the training range, and a linear model extrapolates them without
+    limit. With StandardScaler the test PR-AUC halved (docs/RESULTS.md).
+    """
     numeric = [
         i for i, c in enumerate(m.features) if c not in m.categorical and not c.startswith("V")
     ]
@@ -118,7 +123,10 @@ def train_logistic(m: Matrices) -> Pipeline:
             (
                 "num",
                 make_pipeline(
-                    SimpleImputer(strategy="median", add_indicator=True), StandardScaler()
+                    SimpleImputer(strategy="median", add_indicator=True),
+                    QuantileTransformer(
+                        output_distribution="normal", subsample=100_000, random_state=SEED
+                    ),
                 ),
                 numeric,
             ),
@@ -133,7 +141,7 @@ def train_logistic(m: Matrices) -> Pipeline:
         ]
     )
     model = Pipeline(
-        [("pre", pre), ("lr", LogisticRegression(C=0.1, max_iter=500, random_state=SEED))]
+        [("pre", pre), ("lr", LogisticRegression(C=0.1, max_iter=1000, random_state=SEED))]
     )
     model.fit(m.X_train, m.y_train)
     return model
