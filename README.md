@@ -41,7 +41,6 @@ pytest · GitHub Actions
 | Tests | 38, 95% coverage, mypy strict; CI on a synthetic dataset with the same schema |
 
 Details: **[docs/RESULTS.md](docs/RESULTS.md)** · why each choice: **[docs/DESIGN.md](docs/DESIGN.md)**
-· how to study and defend it: **[docs/INTERVIEW.md](docs/INTERVIEW.md)**
 
 ## Architecture
 
